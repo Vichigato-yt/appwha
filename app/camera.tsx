@@ -1,10 +1,9 @@
 import { CameraView } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, SafeAreaView, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { Header } from '../components/atoms/Header';
 import { IconButton } from '../components/atoms/IconButton';
-import { ActionBar } from '../components/molecules/ActionBar';
 import { PermissionBlocker } from '../components/molecules/PermissionBlocker';
 import { COLORS } from '../constants/theme';
 import { useCameraLogic } from '../lib/modules/camera/useCameraLogic';
@@ -12,7 +11,6 @@ import { useGalleryStore } from '../lib/store/galleryStore';
 
 export default function CameraScreen() {
   const router = useRouter();
-  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const { addPhoto } = useGalleryStore();
   
   const {
@@ -39,57 +37,34 @@ export default function CameraScreen() {
   const handleCapture = async () => {
     const photoUri = await takePicture();
     if (photoUri) {
-      setCapturedPhoto(photoUri);
-    }
-  };
-
-  const handleSave = () => {
-    if (capturedPhoto) {
-      addPhoto(capturedPhoto);
-      setCapturedPhoto(null);
+      addPhoto(photoUri);
       router.replace('/gallery');
     }
   };
 
   const handleDiscard = () => {
-    if (capturedPhoto) {
-      setCapturedPhoto(null);
-    } else {
-      router.back();
-    }
+    router.back();
   };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <Header title={capturedPhoto ? 'Revisar Foto' : 'Capturar'} />
+        <Header title="Capturar" />
         
         <View style={styles.cameraContainer}>
-          {capturedPhoto ? (
-            <Image
-              source={{ uri: capturedPhoto }}
-              style={styles.camera}
-              resizeMode="cover"
-            />
-          ) : (
-            <CameraView
-              ref={cameraRef}
-              style={styles.camera}
-              facing="back"
-              onCameraReady={handleCameraReady}
-            />
-          )}
+          <CameraView
+            ref={cameraRef}
+            style={styles.camera}
+            facing="back"
+            onCameraReady={handleCameraReady}
+          />
         </View>
 
-        {capturedPhoto ? (
-          <ActionBar onDiscard={handleDiscard} onSave={handleSave} />
-        ) : (
-          <View style={styles.controls}>
-            <IconButton icon="close" onPress={handleDiscard} color={COLORS.text} size={32} />
-            <IconButton icon="camera" onPress={handleCapture} color={COLORS.primary} size={64} />
-            <View style={styles.spacer} />
-          </View>
-        )}
+        <View style={styles.controls}>
+          <IconButton icon="close" onPress={handleDiscard} color={COLORS.text} size={32} />
+          <IconButton icon="camera" onPress={handleCapture} color={COLORS.primary} size={64} />
+          <View style={styles.spacer} />
+        </View>
       </SafeAreaView>
     </View>
   );
